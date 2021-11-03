@@ -441,6 +441,7 @@ class WBNMHelper(QgsProcessingAlgorithm):
                 self.tr('Select subcatchment ID/name field'),
                 '',
                 'Subcatchments',
+                type=QgsProcessingParameterField.String,
                 optional=False
             )
         )
@@ -450,6 +451,7 @@ class WBNMHelper(QgsProcessingAlgorithm):
                 self.tr('Select downstream subcatchment ID/name field'),
                 '',
                 'Subcatchments',
+                type=QgsProcessingParameterField.String,
                 optional=False
             )
         )
@@ -459,6 +461,7 @@ class WBNMHelper(QgsProcessingAlgorithm):
                 self.tr('Select impervious percentage field'),
                 '',
                 'Subcatchments',
+                type=QgsProcessingParameterField.Numeric,
                 optional=False
             )
         )
