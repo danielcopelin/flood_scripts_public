@@ -623,7 +623,7 @@ class WBNMHelper(QgsProcessingAlgorithm):
             gis_layer=context.getMapLayer(outlet_y['OUTPUT']), 
             subcatchment_id_field=subcatchment_id_field, 
             ds_id_field=ds_id_field,
-            fi_field=imp_field,
+            imp_field=imp_field,
             topology=topo_block.topology,
             # feedback=feedback
         )
