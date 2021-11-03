@@ -269,7 +269,7 @@ class ImperviousFraction(QgsProcessingAlgorithm):
             intersection_features = [f for f in intersection_layer.getFeatures() if f[catchment_id_field] == name]
             intersection_area = sum([f.geometry().area() for f in intersection_features])
             balance_area = catchment.geometry().area() - intersection_area
-            area_weighted_imp = sum([f['imp_percent']*f.geometry().area() for f in intersection_features]+[balance_area * default_fi]) / catchment.geometry().area()
+            area_weighted_imp = sum([f['imp_percent']*f.geometry().area() for f in intersection_features]+[balance_area * default_imp]) / catchment.geometry().area()
             new_feature.setAttributes(catchment.attributes()+[area_weighted_imp])
             sink.addFeature(new_feature, QgsFeatureSink.FastInsert)
 
