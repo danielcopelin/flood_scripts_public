@@ -438,7 +438,7 @@ class WBNMHelper(QgsProcessingAlgorithm):
         self.addParameter(
             QgsProcessingParameterField(
                 'ID_field',
-                self.tr('Select subcatchment ID/name field'),
+                self.tr('Select subcatchment ID/name fieldd (note: must be string/text field.)'),
                 '',
                 'Subcatchments',
                 type=QgsProcessingParameterField.String,
@@ -448,7 +448,7 @@ class WBNMHelper(QgsProcessingAlgorithm):
         self.addParameter(
             QgsProcessingParameterField(
                 'DS_ID_field',
-                self.tr('Select downstream subcatchment ID/name field'),
+                self.tr('Select downstream subcatchment ID/name field (note: must be string/text field.)'),
                 '',
                 'Subcatchments',
                 type=QgsProcessingParameterField.String,
@@ -458,7 +458,7 @@ class WBNMHelper(QgsProcessingAlgorithm):
         self.addParameter(
             QgsProcessingParameterField(
                 'imp_field',
-                self.tr('Select impervious percentage field'),
+                self.tr('Select impervious percentage fieldd (note: must be numeric field.)'),
                 '',
                 'Subcatchments',
                 type=QgsProcessingParameterField.Numeric,
