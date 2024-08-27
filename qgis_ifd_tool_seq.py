@@ -678,7 +678,7 @@ class IFDTool(QgsProcessingAlgorithm):
                 else:
                     layer_to_process = result['OUTPUT']
                 # grid_name = grid_template.format(duration, aep)
-                grid_match = [g for g in grids if f'IFD_AEP_{aep}_{duration}' in g]
+                grid_match = [g for g in grids if f'IFD_{"ARI" if aep in ("2y", "5y") else "AEP"}_{aep}_{duration}' in g]
                 if grid_match:
                     grid_name = grid_match[0]
                     grid_layer = QgsRasterLayer(grid_name)
@@ -723,7 +723,7 @@ class IFDTool(QgsProcessingAlgorithm):
 
                     first = False
                 else:
-                    feedback.pushInfo(f"No grid found for {aep} {duration}min...")
+                    feedback.pushInfo(f"No grid found for {aep} {duration}...")
 
                 if feedback.isCanceled():
                     return {}
