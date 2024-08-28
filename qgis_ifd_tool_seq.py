@@ -276,7 +276,7 @@ CLIMATE_SCENARIOS = {
     'Long-term (2081-2100) (SSP2-4.5): 2.1 (1.3-3.2) degrees warming': 2.1,
     'Long-term (2081-2100) (SSP3-7.0): 3.0 (2.1-4.4) degrees warming': 3.0,
     'Long-term (2081-2100) (SSP5-8.5): 3.9 (2.6-5.7) degrees warming': 3.9,
-    'No adjustment / historic baseline (2010): 0 degrees warming': 0.0,
+    'No adjustment - historic baseline (2010): 0 degrees warming': 0.0,
 }
 
 
