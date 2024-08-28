@@ -1,3 +1,17 @@
+"""
+v0.1 2024-08-28
+
+QGIS Processing script to extract IFD tables from QRA SEQ grid datasets. 
+Tested on QGIS version 3.34.2.
+
+Created by Dan Copelin (danielcopelin@gmail.com)
+
+Use at your own risk and carefully check all outputs. Script hasn't been extensively tested in all use cases. 
+
+Report issues at https://github.com/danielcopelin/flood_scripts_public/blob/main/qgis_ifd_tool_seq.py
+"""
+
+
 import os
 import glob
 import pandas as pd
@@ -17,8 +31,18 @@ from qgis.core import (
     QgsProcessingParameterVectorDestination,
     QgsProcessingParameterDefinition,
     QgsCoordinateReferenceSystem,
+    edit,
 )
 from qgis import processing
+
+
+DEFAULT_GRID_LOCATION = 'H:/03_Work/03_Code/QRA_SEQ_IFD/QRA_SEQ_IFDUpdate/IFD_data'
+
+
+GRID_SETS = {
+    'QRA_SEQ': '_IFD_data_HARC2024/HARC2024_IFDgrids',
+    'QRA_SEQ_BOM_Envelope': '_IFD_data_Max_BoM_HARC2024/MaxBureau2016andHARC2024_IFDgrids_TIFF',
+}
 
 
 AEPS = {
@@ -239,17 +263,63 @@ DURATIONS = {
 }
 
 
-def createBomCSVs(input_layer, results_dict, grid_set, depth_or_intensity, id_field, output_folder, feedback, context):
+CLIMATE_SCENARIOS = {
+    'Current and near-term (2021-2040) (SSP1-2.6): 0.7 (0.3-1.2) degrees warming': 0.7,
+    'Current and near-term (2021-2040) (SSP2-4.5): 0.7 (0.3-1.3) degrees warming': 0.7,
+    'Current and near-term (2021-2040) (SSP3-7.0): 0.7 (0.4-1.3) degrees warming': 0.7,
+    'Current and near-term (2021-2040) (SSP5-8.5): 0.8 (0.4-1.4) degrees warming': 0.8,
+    'Medium term (2041-2060) (SSP1-2.6): 1.0 (0.5-1.7) degrees warming': 1.0,
+    'Medium term (2041-2060) (SSP2-4.5): 1.2 (0.7-2.0) degrees warming': 1.2,
+    'Medium term (2041-2060) (SSP3-7.0): 1.4 (0.9-2.3) degrees warming': 1.4,
+    'Medium term (2041-2060) (SSP5-8.5): 1.7 (1.0-2.6) degrees warming': 1.7,
+    'Long-term (2081-2100) (SSP1-2.6): 1.1 (0.5-2.0) degrees warming': 1.1,
+    'Long-term (2081-2100) (SSP2-4.5): 2.1 (1.3-3.2) degrees warming': 2.1,
+    'Long-term (2081-2100) (SSP3-7.0): 3.0 (2.1-4.4) degrees warming': 3.0,
+    'Long-term (2081-2100) (SSP5-8.5): 3.9 (2.6-5.7) degrees warming': 3.9,
+    'No adjustment / historic baseline (2010): 0 degrees warming': 0.0,
+}
+
+
+RAINFALL_FACTORS = [
+    15,         #'5 minutes',              
+    15,         #'10 minutes',             
+    15,         #'15 minutes',             
+    15,         #'20 minutes',             
+    15,         #'25 minutes',             
+    15,         #'30 minutes',             
+    15,         #'45 minutes',             
+    15,         #'60 minutes (1 hour)',    
+    13.7,       #'90 minutes (1.5 hours)', 
+    12.8,       #'120 minutes (2 hours)',  
+    11.8,       #'180 minutes (3 hours)',  
+    10.8,       #'270 minutes (4.5 hours)',
+    10.2,       #'360 minutes (6 hours)',  
+    9.5,        #'540 minutes (9 hours)',  
+    9.0,        #'720 minutes (12 hours)', 
+    8.4,        #'1080 minutes (18 hours)',
+    8,          #'1440 minutes (24 hours)',
+    8,          #'30 hours (1.25 days)',   
+    8,          #'36 hours (1.5 days)',    
+    8,          #'48 hours (2 days)',      
+    8,          #'72 hours (3 days)',      
+    8,          #'96 hours (4 days)',      
+    8,          #'120 hours (5 days)',     
+    8,          #'144 hours (6 days)',     
+    8,          #'168 hours (7 days)',     
+]
+
+
+def rainfall_factor(duration, degrees_warming):
+    rainfall_factors = dict(zip(DURATIONS['QRA SEQ'], RAINFALL_FACTORS))
+    rainfall_factor = 1+(rainfall_factors[duration] * degrees_warming)/100.0
+
+    return rainfall_factor
+
+def createBomCSVs(input_layer, results_dict, grid_set, depth_or_intensity, id_field, output_folder, climate_scenario, feedback, context):
 
     aeps_naming = dict(zip(AEPS['QRA SEQ'], AEPS['BOM']))
     durations_naming = dict(zip(DURATIONS['QRA SEQ'], DURATIONS['BOM']))
     numerical_durations = dict(zip(DURATIONS['QRA SEQ'], DURATIONS['LIMB']))
-    
-    grid_sets = {
-        '_IFD_data_HARC2024\HARC2024_IFDgrids': 'QRA_SEQ',
-        '_IFD_data_Max_BoM_HARC2024\MaxBureau2016andHARC2024_IFDgrids_TIFF': 'QRA_SEQ_BOM_Envelope'
-    }
-    grid_set = grid_sets[grid_set]
 
     date = datetime.datetime.today().strftime('%d %B %Y')
 
@@ -257,7 +327,7 @@ def createBomCSVs(input_layer, results_dict, grid_set, depth_or_intensity, id_fi
         feature_id = feature[id_field]
         if input_layer.crs().isGeographic():
             header_template = '\n'.join(
-                [ 'Brisbane City Council',
+                [ f'QRA SEQ 2024 IFD ({grid_set})',
                 '',
                 f'IFD Design Rainfall {depth_or_intensity} (mm{"/hr" if depth_or_intensity == "Intensity" else ""}) - {0}',
                 'Issued:,{1}',
@@ -278,7 +348,7 @@ def createBomCSVs(input_layer, results_dict, grid_set, depth_or_intensity, id_fi
 
         else:
             header_template = '\n'.join(
-                [ 'Brisbane City Council',
+                [ f'QRA SEQ 2024 IFD ({grid_set})',
                 '',
                 f'IFD Design Rainfall {depth_or_intensity} (mm{"/hr" if depth_or_intensity == "Intensity" else ""}) - {0}',
                 'Issued:,{1}',
@@ -305,7 +375,7 @@ def createBomCSVs(input_layer, results_dict, grid_set, depth_or_intensity, id_fi
         aeps = feature_results_dict.keys()
         durations = feature_results_dict[list(aeps)[0]].keys()
 
-        csv_file = os.path.join(output_folder, f'bcc_ifd_{grid_set}_{feature_id}.csv')
+        csv_file = os.path.join(output_folder, f'ifd_{grid_set}_{climate_scenario.split(":")[0]}_{feature_id}.csv')
         df = pd.DataFrame.from_dict(feature_results_dict)
         df['Duration'] = df.index.map(durations_naming)
         df.rename(columns=aeps_naming, inplace=True)
@@ -320,22 +390,19 @@ def createBomCSVs(input_layer, results_dict, grid_set, depth_or_intensity, id_fi
 
         with open(csv_file, 'w') as outfile:
             outfile.write(header)
-        df.to_csv(csv_file, mode='a', float_format="%.1f")
+        if depth_or_intensity == 'Intensity':
+            df.to_csv(csv_file, mode='a', float_format="%.3f")
+        else:
+            df.to_csv(csv_file, mode='a', float_format="%.1f")
 
     return None
 
 
-def createURBS(input_layer, results_dict, grid_set, depth_or_intensity, id_field, output_folder, feedback, context):
+def createURBS(input_layer, results_dict, grid_set, depth_or_intensity, id_field, output_folder, climate_scenario, feedback, context):
 
     aeps_naming = dict(zip(AEPS['QRA SEQ'], AEPS['URBS']))
     durations_naming = dict(zip(DURATIONS['QRA SEQ'], DURATIONS['URBS']))
     numerical_durations = dict(zip(DURATIONS['QRA SEQ'], DURATIONS['LIMB']))
-    
-    grid_sets = {
-        '_IFD_data_HARC2024\HARC2024_IFDgrids': 'QRA_SEQ',
-        '_IFD_data_Max_BoM_HARC2024\MaxBureau2016andHARC2024_IFDgrids_TIFF': 'QRA_SEQ_BOM_Envelope'
-    }
-    grid_set = grid_sets[grid_set]
 
     for feature in input_layer.getFeatures():
         feature_id = feature[id_field]
@@ -357,8 +424,11 @@ def createURBS(input_layer, results_dict, grid_set, depth_or_intensity, id_field
         if depth_or_intensity == 'Intensity':
             df = df.divide([float(numerical_durations[d])/60.0 for d in durations], axis=0)
 
-        csv_file = os.path.join(output_folder, f'urbs_ifd_{grid_set}_{feature_id}.ifd')
-        df.to_csv(csv_file, float_format="%.1f")
+        csv_file = os.path.join(output_folder, f'ifd_{grid_set}_{climate_scenario.split(":")[0]}_{feature_id}.ifd')
+        if depth_or_intensity == 'Intensity':
+            df.to_csv(csv_file, mode='w', float_format="%.3f")
+        else:
+            df.to_csv(csv_file, mode='w', float_format="%.1f")
 
     return None
 
@@ -477,12 +547,22 @@ class IFDTool(QgsProcessingAlgorithm):
             )
         )
 
+        self.addParameter(
+            QgsProcessingParameterEnum(
+                "climate",
+                self.tr('Select climate scenario'),
+                options = list(CLIMATE_SCENARIOS.keys()),
+                allowMultiple = False,
+                optional = False,
+            )
+        )
+
         # optional - grid folder location (defaults to shared network location)
         grid_folder_parameter = QgsProcessingParameterFile(
             "grid_folder",
             self.tr('IFD grids input folder'),
             behavior = 1,
-            defaultValue = r'H:\03_Work\03_Code\QRA_SEQ_IFD\QRA_SEQ_IFDUpdate\IFD_data',
+            defaultValue = DEFAULT_GRID_LOCATION,
             optional = False,
         )
         grid_folder_parameter.setFlags(grid_folder_parameter.flags() | QgsProcessingParameterDefinition.FlagAdvanced)
@@ -563,22 +643,23 @@ class IFDTool(QgsProcessingAlgorithm):
             context
         )
         durations = [durations_list[i] for i in durations_enums]
-        # feedback.pushInfo(str(durations))
 
-        # grid_templates = [
-        #     'X{0}_{1}Envelope_2016_2020.asc' # Envelope
-        #     'X{0}_{1}HighRes_LGA_extent.asc', # High resolution
-        #     'X{0}_{1}Bom_scale_LGA_extent.asc', # Low resolution (BoM scale)
-        # ]
-
-        grid_sets = ['_IFD_data_HARC2024\HARC2024_IFDgrids', '_IFD_data_Max_BoM_HARC2024\MaxBureau2016andHARC2024_IFDgrids_TIFF']
+        climate_enum = self.parameterAsEnum(
+            parameters,
+            'climate',
+            context
+        )
+        climate_scenario = list(CLIMATE_SCENARIOS.keys())[climate_enum]
+        degrees_warming = list(CLIMATE_SCENARIOS.values())[climate_enum]
+        feedback.pushInfo(f"Using {climate_scenario}: {degrees_warming} degrees warming.")
 
         grid_set_enum = self.parameterAsEnum(
             parameters,
             'grid_set',
             context
         )
-        grid_set = grid_sets[grid_set_enum]
+        grid_set = list(GRID_SETS.values())[grid_set_enum]
+        grid_set_short = list(GRID_SETS.keys())[grid_set_enum]
 
         depths_or_intensity_options = [
             'Depth',
@@ -715,11 +796,17 @@ class IFDTool(QgsProcessingAlgorithm):
                         # TODO raise error if geom type not point or polygon - do it somewhere else
                         pass
 
-                    ifd_field = [f for f in result['OUTPUT'].fields().names() if (aep in f) and (duration in f)][0]
-                    for feature in result['OUTPUT'].getFeatures():
-                        feature_id = feature[id_field]
-                        feature_ifd = feature[ifd_field]
-                        results_dict[feature_id][aep][duration] = feature_ifd
+                    ifd_field = [f for f in result['OUTPUT'].fields().names() if f.startswith(f'{aep}_{duration}_')][0]
+                    with edit(result['OUTPUT']):
+                        for feature in result['OUTPUT'].getFeatures():
+                            feature_id = feature[id_field]
+                            feature_ifd = feature[ifd_field]
+                            factor = rainfall_factor(duration, degrees_warming)
+                            new_ifd = feature_ifd * factor
+                            feature[ifd_field] = new_ifd
+                            feedback.pushInfo(f"Apply climate change rainfall factor of {factor}. Base: {feature_ifd:.3f} -> Adjusted: {new_ifd:.3f}")
+                            results_dict[feature_id][aep][duration] = new_ifd
+                            result['OUTPUT'].updateFeature(feature)
 
                     first = False
                 else:
@@ -757,9 +844,9 @@ class IFDTool(QgsProcessingAlgorithm):
             )
 
         if output_format == 'BoM CSV':
-            createBomCSVs(input_layer, results_dict, grid_set, depth_or_intensity, id_field, output_folder, feedback, context)
+            createBomCSVs(input_layer, results_dict, grid_set_short, depth_or_intensity, id_field, output_folder, climate_scenario, feedback, context)
         elif output_format == 'URBS':
-            createURBS(input_layer, results_dict, grid_set, depth_or_intensity, id_field, output_folder, feedback, context)
+            createURBS(input_layer, results_dict, grid_set_short, depth_or_intensity, id_field, output_folder, climate_scenario, feedback, context)
         else:
             feedback.pushInfo(f"Output format {output_format} not supported or implemented.")
 
