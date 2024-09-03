@@ -277,7 +277,7 @@ CLIMATE_SCENARIOS = {
     'Long-term (2081-2100) (SSP3-7.0): 3.0 (2.1-4.4) degrees warming': 3.0,
     'Long-term (2081-2100) (SSP5-8.5): 3.9 (2.6-5.7) degrees warming': 3.9,
     'No adjustment - historic baseline (2010): 0 degrees warming': 0.0,
-}
+} # HARC Quick Guide for Users Version 1 Table 1
 
 
 RAINFALL_FACTORS = [
@@ -306,12 +306,12 @@ RAINFALL_FACTORS = [
     8,          #'120 hours (5 days)',     
     8,          #'144 hours (6 days)',     
     8,          #'168 hours (7 days)',     
-]
+] # ARR Book 1 Chapter 6 Table 1.6.1 and 1.6.5
 
 
 def rainfall_factor(duration, degrees_warming):
     rainfall_factors = dict(zip(DURATIONS['QRA SEQ'], RAINFALL_FACTORS))
-    rainfall_factor = 1+(rainfall_factors[duration] * degrees_warming)/100.0
+    rainfall_factor = (1+rainfall_factors[duration]/100.0)**degrees_warming ## ARR Book 1 Chapter 6 Eqn 1.6.1
 
     return rainfall_factor
 
@@ -804,7 +804,7 @@ class IFDTool(QgsProcessingAlgorithm):
                             factor = rainfall_factor(duration, degrees_warming)
                             new_ifd = feature_ifd * factor
                             feature[ifd_field] = new_ifd
-                            feedback.pushInfo(f"Apply climate change rainfall factor of {factor}. Base: {feature_ifd:.3f} -> Adjusted: {new_ifd:.3f}")
+                            feedback.pushInfo(f"Apply climate change rainfall factor of {factor:.3f}. Base: {feature_ifd:.3f} -> Adjusted: {new_ifd:.3f}")
                             results_dict[feature_id][aep][duration] = new_ifd
                             result['OUTPUT'].updateFeature(feature)
 
@@ -814,6 +814,8 @@ class IFDTool(QgsProcessingAlgorithm):
 
                 if feedback.isCanceled():
                     return {}
+
+        #TODO make sure IFD curves don't overlap after climate change adjustments have been applied
 
         if feedback.isCanceled():
             return {}
