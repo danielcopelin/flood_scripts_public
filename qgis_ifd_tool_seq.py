@@ -1,5 +1,5 @@
 """
-v0.1 2024-08-28
+v0.2 2024-09-03
 
 QGIS Processing script to extract IFD tables from QRA SEQ grid datasets. 
 Tested on QGIS version 3.34.2.
@@ -264,20 +264,21 @@ DURATIONS = {
 
 
 CLIMATE_SCENARIOS = {
-    'Current and near-term (2021-2040) (SSP1-2.6): 0.7 (0.3-1.2) degrees warming': 0.7,
-    'Current and near-term (2021-2040) (SSP2-4.5): 0.7 (0.3-1.3) degrees warming': 0.7,
-    'Current and near-term (2021-2040) (SSP3-7.0): 0.7 (0.4-1.3) degrees warming': 0.7,
-    'Current and near-term (2021-2040) (SSP5-8.5): 0.8 (0.4-1.4) degrees warming': 0.8,
-    'Medium term (2041-2060) (SSP1-2.6): 1.0 (0.5-1.7) degrees warming': 1.0,
-    'Medium term (2041-2060) (SSP2-4.5): 1.2 (0.7-2.0) degrees warming': 1.2,
-    'Medium term (2041-2060) (SSP3-7.0): 1.4 (0.9-2.3) degrees warming': 1.4,
-    'Medium term (2041-2060) (SSP5-8.5): 1.7 (1.0-2.6) degrees warming': 1.7,
-    'Long-term (2081-2100) (SSP1-2.6): 1.1 (0.5-2.0) degrees warming': 1.1,
-    'Long-term (2081-2100) (SSP2-4.5): 2.1 (1.3-3.2) degrees warming': 2.1,
-    'Long-term (2081-2100) (SSP3-7.0): 3.0 (2.1-4.4) degrees warming': 3.0,
-    'Long-term (2081-2100) (SSP5-8.5): 3.9 (2.6-5.7) degrees warming': 3.9,
+    'Current and near-term (2021-2040) (SSP1-2.6): 0.6 (0.3-0.9) degrees warming': 0.6,
+    'Current and near-term (2021-2040) (SSP2-4.5): 0.6 (0.3-0.9) degrees warming': 0.6,
+    'Current and near-term (2021-2040) (SSP3-7.0): 0.6 (0.3-0.9) degrees warming': 0.6,
+    'Current and near-term (2021-2040) (SSP5-8.5): 0.8 (0.4-1.0) degrees warming': 0.7,
+    'Medium term (2041-2060) (SSP1-2.6): 0.8 (0.4-1.3) degrees warming': 0.8,
+    'Medium term (2041-2060) (SSP2-4.5): 1.1 (0.7-1.6) degrees warming': 1.1,
+    'Medium term (2041-2060) (SSP3-7.0): 1.2 (0.8-1.7) degrees warming': 1.2,
+    'Medium term (2041-2060) (SSP5-8.5): 1.5 (1.0-2.1) degrees warming': 1.5,
+    'Long-term (2081-2100) (SSP1-2.6): 0.9 (0.4-1.5) degrees warming': 0.9,
+    'Long-term (2081-2100) (SSP2-4.5): 1.8 (1.2-2.6) degrees warming': 1.8,
+    'Long-term (2081-2100) (SSP3-7.0): 2.7 (1.9-3.7) degrees warming': 2.7,
+    'Long-term (2081-2100) (SSP5-8.5): 3.4 (2.4-4.8) degrees warming': 3.4,
     'No adjustment - historic baseline (2010): 0 degrees warming': 0.0,
-} # HARC Quick Guide for Users Version 1 Table 1
+    'Right now (2024): 0.4 degrees warming': 0.4, # pers. comm. Phil Jordan HARC - ~1.3°C above 1850-1900 pre-industrial baseline, Which is equal to ~1.0°C above BoM (2016) IFDs, Which is equal to  ~0.4°C above the HARC (2024) data set, which are based on a ~2010 baseline
+} # HARC Quick Guide for Users Version 2 Table 1
 
 
 RAINFALL_FACTORS = [
