@@ -267,7 +267,7 @@ CLIMATE_SCENARIOS = {
     'Current and near-term (2021-2040) (SSP1-2.6): 0.6 (0.3-0.9) degrees warming': 0.6,
     'Current and near-term (2021-2040) (SSP2-4.5): 0.6 (0.3-0.9) degrees warming': 0.6,
     'Current and near-term (2021-2040) (SSP3-7.0): 0.6 (0.3-0.9) degrees warming': 0.6,
-    'Current and near-term (2021-2040) (SSP5-8.5): 0.8 (0.4-1.0) degrees warming': 0.7,
+    'Current and near-term (2021-2040) (SSP5-8.5): 0.7 (0.4-1.0) degrees warming': 0.7,
     'Medium term (2041-2060) (SSP1-2.6): 0.8 (0.4-1.3) degrees warming': 0.8,
     'Medium term (2041-2060) (SSP2-4.5): 1.1 (0.7-1.6) degrees warming': 1.1,
     'Medium term (2041-2060) (SSP3-7.0): 1.2 (0.8-1.7) degrees warming': 1.2,
